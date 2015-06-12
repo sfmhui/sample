@@ -7,6 +7,8 @@
 #include <linux/kernel.h>
 #include <linux/init.h>
 
+#include <asm/uaccess.h>
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Michael Hui");
 MODULE_DESCRIPTION("procfs device driver");
@@ -33,20 +35,54 @@ module_param(debugging, int, 0);
 struct proc_dir_entry *	root;
 struct proc_dir_entry * readme;
 
+char BUF[1024];
+int BUFSIZ = 0;
+
 static ssize_t
 procfs_read(struct file *file, char *buf, size_t len, loff_t * f_pos)
 {
+	int rlen = 0;
+
 	if (debugging) {
 		pr_info("read\n");
 	}
-	return 0;
+
+	if (BUFSIZ > 0)
+	{
+		rlen = BUFSIZ;
+		if (rlen > len)
+		{
+			rlen = len;
+		}
+
+		if (copy_to_user(buf, BUF, rlen ))
+		{
+			pr_err("failed to copy msg to buffer\n");
+		}
+		BUFSIZ = 0;
+	}
+
+	return rlen;
 }
 
 static ssize_t
 procfs_write(struct file *file, const char *buf, size_t len, loff_t * f_pos)
 {
+	int rlen = len;
+
+	if (rlen > sizeof(BUF))
+	{
+		rlen = sizeof(BUF) - 1;
+	}
+
+	if (copy_from_user(BUF, buf, rlen))
+	{
+		return -EFAULT;
+	}
+	BUFSIZ = rlen;
+
 	if (debugging) {
-		pr_info("write\n");
+		pr_info("write - %s\n", BUF);
 	}
 	return len;
 }
