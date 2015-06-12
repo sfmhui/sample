@@ -104,7 +104,7 @@ procfs_init(void)
 		pr_err("failed to create root procfs directory\n");
 		ret = -ENOMEM;
 	}
-	else if ((readme = proc_create("readme", 0644, root, &procfs_fops)) == 0L)
+	else if ((readme = proc_create("readme", 0660, root, &procfs_fops)) == 0L)
 	{
 		pr_err("failed to create root procfs readme\n");
 		ret = -ENOMEM;
