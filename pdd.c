@@ -33,8 +33,19 @@ module_param(debugging, int, 0);
 #include <linux/of.h>
 
 
+struct custom_driver
+{
+	struct platform_device*	pdev;
+	struct resource		resource;
+
+	void *			iomem;
+	unsigned char		unit;
+	unsigned char		irq;
+};
+
 #define	MOD_NAME	"tcb"
 #define	NUM_UNITS()	2
+
 
 int
 find_unit(struct platform_device * pdev)
